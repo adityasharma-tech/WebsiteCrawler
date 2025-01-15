@@ -1,13 +1,22 @@
-import uuid
+import os
+import dotenv
 from langchain.chains import create_retrieval_chain
 from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.chat_history import BaseChatMessageHistory
 from langchain_community.chat_message_histories import ChatMessageHistory
 from langchain_core.runnables.history import RunnableWithMessageHistory
+from langchain_google_genai import ChatGoogleGenerativeAI
+
+dotenv.load_dotenv(dotenv_path="./.env")
+
+PINECONE_API_KEY=os.getenv('PINECONE_API_KEY')
+GOOGLE_API_KEY=os.getenv('GOOGLE_API_KEY')
 
 class DataLLM:
     def __init__(self, vstore):
+
+        self.llm = ChatGoogleGenerativeAI(model="gemini-1.5-flash", api_key=GOOGLE_API_KEY)
         
         self.qa_system_prompt = """You are an assistant for question-answering tasks only related to the context not too much other than that, you can do some. \
         You are an intelligent assistant for a website channel archive. \

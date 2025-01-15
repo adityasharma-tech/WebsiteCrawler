@@ -21,24 +21,26 @@ class WebAi:
     
     def upload_vectorstore(self):
         uploader = VectorstoreUploader(self.data, "intentjs")
-        uploader.execute()
+        # uploader.execute()
         self.vstore = uploader.get_vstore()
 
     def load_ai(self):
         self.genai = DataLLM(self.vstore)
 
     def prerun(self):
-        self.crawl_data()
-        self.extract_text()
+        # self.crawl_data()
+        # self.extract_text()
         self.upload_vectorstore()
+        self.load_ai()
 
     def query(self, prompt, session_id):
         return self.genai.query(prompt, session_id)
     
 if __name__ == "__main__":
-    url = input("Enter the url you want for the ai: ")
-    webai = WebAi(url)
+    webai = WebAi("")
     webai.prerun()
-    while True:
-        query = input("Prompt: ")
-        print("Response: " + webai.query(query))
+    respone = webai.vstore.search("intentjs", "similarity")
+    print(respone)
+    # while True:
+    #     query = input("Prompt: ")
+    #     print("Response: " + webai.query(query, "session"))

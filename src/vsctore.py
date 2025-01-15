@@ -3,6 +3,7 @@ import time
 import dotenv
 from pinecone import Pinecone, ServerlessSpec
 from langchain_pinecone import PineconeVectorStore
+from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
 
 dotenv.load_dotenv(dotenv_path="./.env")
@@ -32,7 +33,6 @@ class VectorstoreUploader:
                 dimension=768,
                 metric="cosine",
                 spec=ServerlessSpec(cloud="aws", region="us-east-1"),
-                
             )
             while not self.pc.describe_index(self.index_name).status["ready"]:
                 time.sleep(1)
@@ -47,7 +47,9 @@ class VectorstoreUploader:
     def execute(self):
         for index, d in enumerate(self.data):
             try:
-                metadatas=[d['metadata']]
+                metadatas=[{
+                    "url": d['metadata']['url']
+                }]
                 self.vectorstore.add_texts(d['content'], metadatas)
                 print(f"vectorstore uploaded for url: {d['metadata']['url']}")
             except Exception as e:
