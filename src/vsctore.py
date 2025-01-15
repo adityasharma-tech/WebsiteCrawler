@@ -3,7 +3,7 @@ import time
 import dotenv
 from pinecone import Pinecone, ServerlessSpec
 from langchain_pinecone import PineconeVectorStore
-from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_core.documents import Document
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
 
 dotenv.load_dotenv(dotenv_path="./.env")
@@ -45,15 +45,16 @@ class VectorstoreUploader:
         return self.vectorstore
 
     def execute(self):
+        documents = []
         for index, d in enumerate(self.data):
-            try:
-                metadatas=[{
-                    "url": d['metadata']['url']
-                }]
-                self.vectorstore.add_texts(d['content'], metadatas)
-                print(f"vectorstore uploaded for url: {d['metadata']['url']}")
-            except Exception as e:
-                print(f"Error occured during url: {d['metadata']['url']}")
+            metadata={
+                "url": d['metadata']['url']
+            }
+            documents.append(Document(page_content=d['content'], metadata=metadata))
+            print(f"vectorstore added for url: {d['metadata']['url']}")
+        try:
+            self.vectorstore.add_documents(documents)
+        except Exception as e:
+                print(f"Error occured during url.")
                 print(e)
-
         print("vectorstore execution completed.")

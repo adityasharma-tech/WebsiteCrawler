@@ -21,15 +21,15 @@ class WebAi:
     
     def upload_vectorstore(self):
         uploader = VectorstoreUploader(self.data, "intentjs")
-        # uploader.execute()
+        uploader.execute()
         self.vstore = uploader.get_vstore()
 
     def load_ai(self):
         self.genai = DataLLM(self.vstore)
 
     def prerun(self):
-        # self.crawl_data()
-        # self.extract_text()
+        self.crawl_data()
+        self.extract_text()
         self.upload_vectorstore()
         self.load_ai()
 
@@ -37,10 +37,15 @@ class WebAi:
         return self.genai.query(prompt, session_id)
     
 if __name__ == "__main__":
-    webai = WebAi("")
+    webai = WebAi("https://tryintent.com/docs")
     webai.prerun()
-    respone = webai.vstore.search("intentjs", "similarity")
-    print(respone)
-    # while True:
-    #     query = input("Prompt: ")
-    #     print("Response: " + webai.query(query, "session"))
+    results = webai.vstore.similarity_search(
+    "what is intentjs",
+    k=2
+    )
+    print(results)
+    for res in results:
+        print(f"* {res.page_content} [{res.metadata}]")
+    while True:
+        query = input("Prompt: ")
+        print("Response: " + webai.query(query, "session"))

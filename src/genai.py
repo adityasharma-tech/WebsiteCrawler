@@ -18,12 +18,10 @@ class DataLLM:
 
         self.llm = ChatGoogleGenerativeAI(model="gemini-1.5-flash", api_key=GOOGLE_API_KEY)
         
-        self.qa_system_prompt = """You are an assistant for question-answering tasks only related to the context not too much other than that, you can do some. \
-        You are an intelligent assistant for a website channel archive. \
-        Your role is to analyze video transcripts and metadata provided from web data. \
-        You exist to provide clear, accurate, and context-aware answers based on the website data and metadata. \
-        If you don't know the answer, just say that you don't know. \
-        Use three sentences maximum and keep the answer concise.\
+        self.qa_system_prompt = """You are an AI assistant specialized in providing information about IntentJS, a web application framework built on top of NestJS.\
+            IntentJS offers declarative APIs to develop and ship sophisticated solutions with ease. \
+            It includes features like database integration, storage solutions, message queues, mailers, caching, logging, validations, transformers, helpers, localization, and console commands. Your role is to assist users by answering questions related to IntentJS's features, installation, usage, and best practices.\
+            If you don't know the answer, it's okay to say you don't know. Keep your responses concise and relevant to IntentJS.\
 
         {context}"""
         if vstore is None:
