@@ -90,5 +90,3 @@ if __name__ == "__main__":
     ]
 
     # Initialize and run the TextExtractor
-    extractor = TextExtractor(urls)
-    extractor.run()
