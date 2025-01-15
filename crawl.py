@@ -1,77 +1,83 @@
 import requests
 from bs4 import BeautifulSoup
-from urllib.parse import urljoin, urlparse
+from urllib.parse import urljoin, urlparse, urldefrag
 
-def scrape_links(url, hostname, visited):
+class WebCrawler:
     """
-    Scrape links from a given URL and recursively scrape links from the same hostname.
-
-    Args:
-        url (str): The URL to scrape.
-        hostname (str): The base hostname for filtering.
-        visited (set): Set of visited URLs to avoid duplicates.
-
-    Returns:
-        set: A set of all unique links found on the website.
+    A web crawler that scrapes all links from a website, ensuring no duplicates
+    by removing fragments and crawling only links within the same hostname.
     """
-    try:
-        # Send an HTTP request to the URL
-        response = requests.get(url)
-        response.raise_for_status()
 
-        # Parse the HTML content
-        soup = BeautifulSoup(response.text, 'html.parser')
+    def __init__(self, start_url):
+        """
+        Initialize the WebCrawler with a starting URL.
 
-        # Find all anchor tags with href attributes
-        links = set()
-        for a_tag in soup.find_all('a', href=True):
-            # Create the full URL
-            full_url = urljoin(url, a_tag['href'])
+        Args:
+            start_url (str): The starting URL for the crawl.
+        """
+        self.start_url = start_url
+        self.hostname = urlparse(start_url).hostname
+        self.visited = set()
+        self.to_visit = {start_url}
 
-            # Parse the URL and check the hostname
-            if urlparse(full_url).hostname == hostname:
-                if full_url not in visited:
-                    links.add(full_url)
+    def scrape_links(self, url):
+        """
+        Scrape all unique links from the given URL.
 
-        return links
+        Args:
+            url (str): The URL to scrape.
 
-    except requests.exceptions.RequestException as e:
-        print(f"An error occurred while scraping {url}: {e}")
-        return set()
+        Returns:
+            set: A set of unique links within the same hostname.
+        """
+        try:
+            response = requests.get(url)
+            response.raise_for_status()
+            soup = BeautifulSoup(response.text, 'html.parser')
 
-def crawl_website(start_url):
-    """
-    Crawl a website starting from the given URL, scraping all links within the same hostname.
+            links = set()
+            for a_tag in soup.find_all('a', href=True):
+                # Create the full URL and remove fragments
+                full_url = urljoin(url, a_tag['href'])
+                clean_url, _ = urldefrag(full_url)
 
-    Args:
-        start_url (str): The starting URL.
+                # Add to links if it's within the same hostname and not visited
+                if urlparse(clean_url).hostname == self.hostname and clean_url not in self.visited:
+                    links.add(clean_url)
 
-    Returns:
-        set: A set of all unique links found on the website.
-    """
-    visited = set()
-    to_visit = {start_url}
-    hostname = urlparse(start_url).hostname
+            return links
 
-    while to_visit:
-        current_url = to_visit.pop()
-        print(f"Scraping: {current_url}")
-        visited.add(current_url)
+        except requests.exceptions.RequestException as e:
+            print(f"An error occurred while scraping {url}: {e}")
+            return set()
 
-        # Get links from the current URL
-        links = scrape_links(current_url, hostname, visited)
+    def crawl(self):
+        """
+        Start crawling the website from the start URL.
 
-        # Add new links to the queue for further crawling
-        to_visit.update(links - visited)
+        Returns:
+            set: A set of all unique links found on the website.
+        """
+        while self.to_visit:
+            current_url = self.to_visit.pop()
+            print(f"Scraping: {current_url}")
+            self.visited.add(current_url)
 
-    return visited
+            # Scrape links from the current URL
+            links = self.scrape_links(current_url)
+
+            # Add new links to the queue
+            self.to_visit.update(links - self.visited)
+
+        return self.visited
 
 if __name__ == "__main__":
     # Input the starting website URL
     website_url = input("Enter the starting website URL (e.g., https://example.com): ").strip()
 
-    # Start crawling the website
-    all_links = crawl_website(website_url)
+    # Initialize the WebCrawler and start crawling
+    crawler = WebCrawler(website_url)
+    all_links = crawler.crawl()
 
     # Print the results
     print(f"\nTotal links found: {len(all_links)}")
